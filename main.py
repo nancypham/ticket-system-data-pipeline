@@ -1,14 +1,14 @@
 from mysql.connector import connect
 import pandas as pd
-from secrets import user, password
+import secrets
 
 def get_db_connection():
     connection = None
     try:
-        connection = connect(user=user, # move to secrets
-            password=password, # move to secrets
-            host='localhost',
-            port='3306',
+        connection = connect(user=secrets.user,
+            password=secrets.password,
+            host=secrets.host,
+            port=secrets.port,
             database='ticket_system')
     except Exception as error:
         print("Error while connecting to database for job tracker", error)
@@ -22,14 +22,14 @@ def load_third_party(connection, file_path_csv):
 
     for i, row in dataFile.iterrows():
         sql = "INSERT INTO sales (ticket_id, trans_date, event_id, event_name, event_date, event_type, event_city, customer_id, price, num_tickets) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, tuple(row)) #question
+        cursor.execute(sql, tuple(row))
     
     connection.commit()
     cursor.close()
     return 
 
 def query_popular_tickets(connection):
-    # Get the most popular ticket in the past month
+    # Get the top 3 most popular tickets in the past month
     sql_stmt = "SELECT event_name FROM (SELECT event_name, SUM(num_tickets) AS num_tickets FROM sales GROUP BY event_name ORDER BY num_tickets DESC) AS tot_tickets LIMIT 3"
     cursor = connection.cursor()
     cursor.execute(sql_stmt)
